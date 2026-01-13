@@ -1,0 +1,22 @@
+[project]
+name = "graph-rag"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "Your Name",email = "you@example.com"}
+]
+readme = "README.md"
+requires-python = ">=3.11,<3.13"
+dependencies = [
+    "graspologic (>=3.4.4,<4.0.0)",
+    "numpy (==1.26.4)",
+    "scipy (>=1.17.0,<2.0.0)",
+    "future (>=1.0.0,<2.0.0)",
+    "llama-index (>=0.14.12,<0.15.0)",
+    "llama-index-graph-stores-neo4j (>=0.5.1,<0.6.0)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
