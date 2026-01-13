@@ -7,6 +7,7 @@ from collections import defaultdict
 
 from llama_index.core.llms import ChatMessage
 from llama_index.graph_stores.neo4j import Neo4jPropertyGraphStore
+from llama_index.core.llms import LLM
 
 
 class GraphRAGStore(Neo4jPropertyGraphStore):
@@ -14,7 +15,7 @@ class GraphRAGStore(Neo4jPropertyGraphStore):
     entity_info = None
     max_cluster_size = 5
 
-    def __init__(self, model, username: str, password: str, url: str, **neo4j_kwargs: Any):
+    def __init__(self, model: LLM, username: str, password: str, url: str, **neo4j_kwargs: Any):
         super().__init__(username, password, url, **neo4j_kwargs)
         self.llm = model
 
