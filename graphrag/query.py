@@ -1,5 +1,3 @@
-from typing import Any
-
 from llama_index.core.query_engine import CustomQueryEngine
 from llama_index.core.llms import LLM
 from llama_index.core import PropertyGraphIndex
@@ -14,14 +12,6 @@ class GraphRAGQueryEngine(CustomQueryEngine):
     index: PropertyGraphIndex
     llm: LLM
     similarity_top_k: int = 20
-
-    # def __init__(self, graph_store: GraphRAGStore, index: PropertyGraphIndex, llm: LLM, similarity_top_k: int = 20,
-    #              **data: Any):
-    #     super().__init__(**data)
-    #     self.graph_store = graph_store
-    #     self.index = index
-    #     self.llm = llm
-    #     self.similarity_top_k = similarity_top_k
 
     def custom_query(self, query_str: str) -> str:
         """Process all community summaries to generate answers to a specific query."""
