@@ -7,6 +7,13 @@ Install packages with:
 poetry install
 ```
 
+You will also need to install [ollama](https://ollama.com/download) as it uses a local LLM.
+Install `qwen2.5:3b`
+
+```bash
+ollama pull qwen2.5:3b
+```
+
 ### Run
 
 If you have not run this before, the graph DB will not be cached in a local `data/` directory.
