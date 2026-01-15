@@ -1,6 +1,7 @@
 ### Install
 
 This project uses [poetry](https://python-poetry.org/) for package management.
+Install packages with:
 
 ```bash
 poetry install
