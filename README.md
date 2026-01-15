@@ -9,10 +9,10 @@ poetry install
 ### Run
 
 If you have not run this before, the graph DB will not be cached in a local `data/` directory.
-To download the data and set up the graph store, run
+To pull neo4j docker image and build container, download the data, and set up the graph store, run:
 
 ```bash
-poetry run python main.py -r
+invoke kb && poetry run python main.py -r
 ```
 
 If you already ran the above command, you can use the local store and remove the `-r` flag:
