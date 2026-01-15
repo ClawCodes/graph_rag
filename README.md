@@ -1,0 +1,33 @@
+### Install
+
+This project uses [poetry](https://python-poetry.org/) for package management.
+
+```bash
+poetry install
+```
+
+### Run
+
+If you have not run this before, the graph DB will not be cached in a local `data/` directory.
+To download the data and set up the graph store, run
+
+```bash
+poetry run python main.py -r
+```
+
+If you already ran the above command, you can use the local store and remove the `-r` flag:
+
+```bash
+poetry run python main.py
+```
+
+### Query
+
+You can pass your query for the corpus using the `-q` flag
+
+```bash
+poetry run python main.py -q "Please tell me about common themes in the news"
+```
+
+Or just use the default query that is automatically passed by providing no arguments.
+The default query is: "What are the main news discussed in the document?".

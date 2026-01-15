@@ -67,13 +67,13 @@ def create_query_engine(llm: LLM, index: PropertyGraphIndex) -> GraphRAGQueryEng
     )
 
 
-def _query(engine):
-    response = engine.query("What are the main news discussed in the document?")
+def _query(engine: GraphRAGQueryEngine, query: str) -> None:
+    response = engine.query(query)
 
     print(response)
 
 
-def query_from_raw() -> None:
+def query_from_raw(query: str) -> None:
     news = pd.read_csv(
         "https://raw.githubusercontent.com/tomasonjo/blog-datasets/main/news_articles.csv"
     )[:50]
@@ -104,29 +104,32 @@ def query_from_raw() -> None:
 
     query_engine = create_query_engine(llm, index)
 
-    _query(query_engine)
+    _query(query_engine, query)
 
 
-def query_existing() -> None:
+def query_existing(query: str) -> None:
     llm, embed_model = load_models(QWEN_SMALL)
 
     index = load_index(llm, embed_model)
 
     query_engine = create_query_engine(llm, index)
 
-    _query(query_engine)
+    _query(query_engine, query)
 
 
-def main(from_raw: bool) -> None:
+def main(from_raw: bool, query: str) -> None:
     if from_raw:
-        query_from_raw()
+        query_from_raw(query)
     else:
-        query_existing()
+        query_existing(query)
 
 
 if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument("-r", "--from-raw", action="store_true")
+    parser.add_argument(
+        "-q", "--query", default="What are the main news discussed in the document?"
+    )
     args = parser.parse_args()
 
-    main(args.from_raw)
+    main(args.from_raw, args.query)
