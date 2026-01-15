@@ -1,28 +1,24 @@
 import asyncio
+
 import nest_asyncio
 
 nest_asyncio.apply()
 
-from typing import Any, List, Callable, Optional, Union
-
 import re
+from typing import Any, Callable, List, Optional, Tuple, Union
 
 from llama_index.core.async_utils import run_jobs
-from llama_index.core.indices.property_graph.utils import (
-    default_parse_triplets_fn,
-)
 from llama_index.core.graph_stores.types import (
-    EntityNode,
     KG_NODES_KEY,
     KG_RELATIONS_KEY,
+    EntityNode,
     Relation,
 )
+from llama_index.core.indices.property_graph.utils import default_parse_triplets_fn
 from llama_index.core.llms.llm import LLM
 from llama_index.core.prompts import PromptTemplate
-from llama_index.core.prompts.default_prompts import (
-    DEFAULT_KG_TRIPLET_EXTRACT_PROMPT,
-)
-from llama_index.core.schema import TransformComponent, BaseNode
+from llama_index.core.prompts.default_prompts import DEFAULT_KG_TRIPLET_EXTRACT_PROMPT
+from llama_index.core.schema import BaseNode, TransformComponent
 
 KG_TRIPLET_EXTRACT_TMPL = """
 -Goal-
@@ -88,6 +84,7 @@ text: {text}
 ######################
 output:"""
 
+
 class GraphRAGExtractor(TransformComponent):
     """Extract triples from a graph.
 
@@ -142,9 +139,7 @@ class GraphRAGExtractor(TransformComponent):
         self, nodes: List[BaseNode], show_progress: bool = False, **kwargs: Any
     ) -> List[BaseNode]:
         """Extract triples from nodes."""
-        return asyncio.run(
-            self.acall(nodes, show_progress=show_progress, **kwargs)
-        )
+        return asyncio.run(self.acall(nodes, show_progress=show_progress, **kwargs))
 
     async def _aextract(self, node: BaseNode) -> BaseNode:
         """Extract triples from a node."""
@@ -204,14 +199,15 @@ class GraphRAGExtractor(TransformComponent):
             desc="Extracting paths from text",
         )
 
+
 import json
 
 
 def parse_fn(response_str: str) -> Any:
     json_pattern = r"\{.*\}"
     match = re.search(json_pattern, response_str, re.DOTALL)
-    entities = []
-    relationships = []
+    entities: List[Tuple[str, str, str]] = []
+    relationships: List[Tuple[str, str, str, str]] = []
     if not match:
         return entities, relationships
     json_str = match.group(0)

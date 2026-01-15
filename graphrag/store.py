@@ -1,25 +1,25 @@
 import re
-from typing import Any
+from collections import defaultdict
+from typing import Any, Dict
 
 import networkx as nx
 from graspologic.partition import hierarchical_leiden
-from collections import defaultdict
-
-from llama_index.core.llms import ChatMessage
+from llama_index.core.llms import LLM, ChatMessage
 from llama_index.graph_stores.neo4j import Neo4jPropertyGraphStore
-from llama_index.core.llms import LLM
 
 
 class GraphRAGStore(Neo4jPropertyGraphStore):
-    community_summary = {}
+    community_summary: Dict[str, str] = {}
     entity_info = None
     max_cluster_size = 5
 
-    def __init__(self, model: LLM, username: str, password: str, url: str, **neo4j_kwargs: Any):
+    def __init__(
+        self, model: LLM, username: str, password: str, url: str, **neo4j_kwargs: Any
+    ):
         super().__init__(username, password, url, **neo4j_kwargs)
         self.llm = model
 
-    def generate_community_summary(self, text):
+    def generate_community_summary(self, text) -> str:
         """Generate summary for a given text using an LLM."""
         messages = [
             ChatMessage(
@@ -94,12 +94,10 @@ class GraphRAGStore(Neo4jPropertyGraphStore):
     def _summarize_communities(self, community_info):
         """Generate and store summaries for each community."""
         for community_id, details in community_info.items():
-            details_text = (
-                "\n".join(details) + "."
-            )  # Ensure it ends with a period
-            self.community_summary[
-                community_id
-            ] = self.generate_community_summary(details_text)
+            details_text = "\n".join(details) + "."  # Ensure it ends with a period
+            self.community_summary[community_id] = self.generate_community_summary(
+                details_text
+            )
 
     def get_community_summaries(self):
         """Returns the community summaries, building them if not already done."""

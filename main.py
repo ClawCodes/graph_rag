@@ -1,35 +1,45 @@
 import os
-from typing import Optional
+from argparse import ArgumentParser
+from typing import Optional, Tuple
 
 import pandas as pd
-from llama_index.core import Document
-
-from graphrag.extractors import GraphRAGExtractor, KG_TRIPLET_EXTRACT_TMPL, parse_fn
-from graphrag.query import GraphRAGQueryEngine
-from graphrag.utils import load_llm, QWEN_SMALL
-from graphrag.store import GraphRAGStore
+from dotenv import load_dotenv
+from llama_index.core import Document, PropertyGraphIndex
+from llama_index.core.llms import LLM
 from llama_index.core.node_parser import SentenceSplitter
-from llama_index.core import PropertyGraphIndex
 from llama_index.core.schema import BaseNode
 from llama_index.embeddings.huggingface import HuggingFaceEmbedding
-from llama_index.core.llms import LLM
 
-from dotenv import load_dotenv
+from graphrag.extractors import KG_TRIPLET_EXTRACT_TMPL, GraphRAGExtractor, parse_fn
+from graphrag.query import GraphRAGQueryEngine
+from graphrag.store import GraphRAGStore
+from graphrag.utils import QWEN_SMALL, load_llm
 
 load_dotenv()
 
 
-def load_models(model):
+def load_models(model) -> Tuple[LLM, HuggingFaceEmbedding]:
     llm = load_llm(model)
     embed_model = HuggingFaceEmbedding(model_name="BAAI/bge-small-en-v1.5")
 
     return llm, embed_model
 
 
-def load_index(llm: LLM, embed_model: HuggingFaceEmbedding, nodes: Optional[list[BaseNode]] = None,
-               extractor: Optional[GraphRAGExtractor] = None) -> PropertyGraphIndex:
+def load_index(
+    llm: LLM,
+    embed_model: HuggingFaceEmbedding,
+    nodes: Optional[list[BaseNode]] = None,
+    extractor: Optional[GraphRAGExtractor] = None,
+) -> PropertyGraphIndex:
+    pw = os.getenv("PASSWORD")
+    if pw is None:
+        raise EnvironmentError("Please set the environment variable 'PASSWORD'")
+
     graph_store = GraphRAGStore(
-        model=llm, username="neo4j", password=os.getenv("PASSWORD"), url="bolt://localhost:7687"
+        model=llm,
+        username="neo4j",
+        password=pw,
+        url="bolt://localhost:7687",
     )
 
     if nodes is not None and extractor is not None:
@@ -42,12 +52,11 @@ def load_index(llm: LLM, embed_model: HuggingFaceEmbedding, nodes: Optional[list
         )
     else:
         index = PropertyGraphIndex.from_existing(
-            property_graph_store=graph_store,
-            embed_model=embed_model,
-            llm=llm
+            property_graph_store=graph_store, embed_model=embed_model, llm=llm
         )
 
     return index
+
 
 def create_query_engine(llm: LLM, index: PropertyGraphIndex) -> GraphRAGQueryEngine:
     return GraphRAGQueryEngine(
@@ -57,14 +66,20 @@ def create_query_engine(llm: LLM, index: PropertyGraphIndex) -> GraphRAGQueryEng
         similarity_top_k=10,
     )
 
-def query_from_raw():
+
+def _query(engine):
+    response = engine.query("What are the main news discussed in the document?")
+
+    print(response)
+
+
+def query_from_raw() -> None:
     news = pd.read_csv(
         "https://raw.githubusercontent.com/tomasonjo/blog-datasets/main/news_articles.csv"
     )[:50]
 
     documents = [
-        Document(text=f"{row['title']}: {row['text']}")
-        for i, row in news.iterrows()
+        Document(text=f"{row['title']}: {row['text']}") for i, row in news.iterrows()
     ]
 
     splitter = SentenceSplitter(
@@ -89,27 +104,29 @@ def query_from_raw():
 
     query_engine = create_query_engine(llm, index)
 
-    response = query_engine.query(
-        "What are the main news discussed in the document?"
-    )
+    _query(query_engine)
 
-    print(response)
 
-def query_existing():
+def query_existing() -> None:
     llm, embed_model = load_models(QWEN_SMALL)
 
     index = load_index(llm, embed_model)
 
     query_engine = create_query_engine(llm, index)
 
-    response = query_engine.query(
-        "What are the main news discussed in the document?"
-    )
+    _query(query_engine)
 
-    print(response)
 
-def main():
-    query_existing()
+def main(from_raw: bool) -> None:
+    if from_raw:
+        query_from_raw()
+    else:
+        query_existing()
 
-if __name__ == '__main__':
-    main()
+
+if __name__ == "__main__":
+    parser = ArgumentParser()
+    parser.add_argument("-r", "--from-raw", action="store_true")
+    args = parser.parse_args()
+
+    main(args.from_raw)
